@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GravelMath - honest gravel math</title>
+<style>
+  :root { --bg:#141414; --card:#1e1e1c; --ink:#efeee9; --dim:#a8a69b; --acc:#b0a184; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding:28px 24px 8px; max-width:980px; margin:0 auto; display:flex; justify-content:space-between; align-items:baseline; }
+  h1 { margin:0; font-size:28px; }
+  h1 span { color:var(--acc); }
+  nav a { color:var(--dim); text-decoration:none; font-size:14px; }
+  main { max-width:980px; margin:0 auto; padding:16px 24px 60px; display:grid; gap:18px; }
+  .card { background:var(--card); border-radius:14px; padding:20px; }
+  .card h2 { margin:0 0 12px; font-size:13px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+  label { display:block; font-size:13px; color:var(--dim); margin-bottom:4px; }
+  input, select { width:100%; background:#161614; border:1px solid #45443c; color:var(--ink); border-radius:8px; padding:9px 10px; font-size:15px; }
+  .hint { font-size:12.5px; color:var(--dim); margin-top:10px; }
+  button { cursor:pointer; border:0; border-radius:9px; padding:11px 16px; font-size:15px; background:var(--acc); color:#262319; font-weight:600; }
+  button.ghost { background:#383730; color:var(--ink); font-weight:500; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .verdict { font-size:17px; line-height:1.65; }
+  .verdict b { color:var(--acc); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:16px; }
+  .stat { background:#161614; border-radius:10px; padding:12px; }
+  .stat .v { font-size:19px; font-weight:700; color:var(--acc); }
+  .stat .k { font-size:12px; color:var(--dim); margin-top:2px; }
+  .note { margin-top:14px; font-size:13.5px; color:var(--dim); }
+  .note b { color:var(--acc); font-weight:600; }
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+  .option { background:#161614; border-radius:10px; padding:14px; border:2px solid transparent; }
+  .option.win { border-color:#8fb37a; }
+  .option .name { font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); }
+  .option .price { font-size:22px; font-weight:700; margin:4px 0 2px; }
+  .option.win .price { color:#8fb37a; }
+  .option .sub { font-size:12.5px; color:var(--dim); }
+  @media (max-width:560px){ .duo { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gravel<span>Math</span></h1>
+  <nav><a href="index.html">home</a></nav>
+</header>
+<main>
+  <section class="card">
+    <h2>The job</h2>
+    <div class="grid">
+      <div><label>Area (sq ft)</label><input id="area" type="number" value="100"></div>
+      <div><label>What it is</label><select id="use">
+        <option value="path" selected>Garden path (2 in)</option>
+        <option value="patio">Patio base (4 in)</option>
+        <option value="driveway">Driveway (6 in, two layers)</option>
+      </select></div>
+      <div><label>Bag price (0.5 cu ft)</label><input id="bagPrice" type="number" step="0.01" value="5"></div>
+      <div><label>Bulk price (per ton)</label><input id="tonPrice" type="number" step="0.01" value="45"></div>
+      <div><label>Delivery fee</label><input id="delivery" type="number" step="0.01" value="50"></div>
+    </div>
+    <p class="hint">Crushed stone runs about 1.4 tons per cubic yard and compacts 20% - the depth you rake is not the depth you keep. Order the compaction now or re-order it later.</p>
+    <div class="row">
+      <button id="run">Weigh it honestly</button>
+      <button class="ghost" data-preset="path">the garden path</button>
+      <button class="ghost" data-preset="patio">patio base</button>
+      <button class="ghost" data-preset="driveway">driveway redo</button>
+    </div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <h2>Bags vs the truck</h2>
+    <p class="verdict" id="verdictText"></p>
+    <div class="duo">
+      <div class="option" id="optBags">
+        <div class="name">Bags (0.5 cu ft)</div>
+        <div class="price" id="bagTotal"></div>
+        <div class="sub" id="bagSub"></div>
+      </div>
+      <div class="option" id="optBulk">
+        <div class="name">Bulk + delivery</div>
+        <div class="price" id="bulkTotal"></div>
+        <div class="sub" id="bulkSub"></div>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <p class="note" id="advice"></p>
+  </section>
+
+  <section class="card">
+    <h2>The 20% nobody orders</h2>
+    <p class="note">Fresh gravel <b>compacts about 20%</b> - a raked 2-inch path settles to 1.6, and the difference is a second order with a second delivery fee. Stone sells by the <b>half ton</b>, bags are <b>54 to the yard</b> before compaction, and a driveway is two jobs: <b>4 inches of base, 2 of finish</b>, compacted between. Under it all: fabric, or you are weeding the path by July.</p>
+  </section>
+</main>
+<script src="engine.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (x) { return '$' + x.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+
+  var PRESETS = {
+    path: { area: 100, use: 'path' },
+    patio: { area: 180, use: 'patio' },
+    driveway: { area: 400, use: 'driveway' }
+  };
+  document.querySelectorAll('[data-preset]').forEach(function (b) {
+    b.onclick = function () {
+      var p = PRESETS[b.dataset.preset];
+      Object.keys(p).forEach(function (k) { $(k).value = p[k]; });
+      run();
+    };
+  });
+
+  function run() {
+    var area = +$('area').value || 0;
+    if (area <= 0) { alert('Enter an area.'); return; }
+    var use = $('use').value;
+    var depth = GravelMath.DEPTH_BY_USE[use];
+    var cmp = GravelMath.compare(area, depth, {
+      bagPrice: +$('bagPrice').value || 5,
+      tonPrice: +$('tonPrice').value || 45,
+      delivery: +$('delivery').value || 0
+    });
+
+    $('verdictText').innerHTML = area + ' sq ft at ' + depth + ' inches is ' + cmp.compactedYards +
+      ' yards with compaction - <b>' + cmp.tons + ' tons</b> from the truck or <b>' + cmp.bags +
+      ' bags</b> from the aisle. ' + (cmp.winner === 'bulk'
+        ? 'The truck wins by <b>' + money(cmp.savings) + '</b>.'
+        : 'Bags win by <b>' + money(cmp.savings) + '</b> once the delivery fee lands.');
+
+    $('bagTotal').textContent = money(cmp.bagTotal);
+    $('bagSub').textContent = cmp.bags + ' bags, 50 lb each';
+    $('bulkTotal').textContent = money(cmp.bulkTotal);
+    $('bulkSub').textContent = cmp.tons + ' tons delivered, one pile';
+    $('optBags').classList.toggle('win', cmp.winner === 'bags');
+    $('optBulk').classList.toggle('win', cmp.winner === 'bulk');
+
+    var stats = [
+      { v: cmp.compactedYards + ' yd', k: 'with 20% compaction' },
+      { v: cmp.tons, k: 'tons to order (half-ton steps)' },
+      { v: cmp.bags, k: 'bags at 0.5 cu ft' },
+      { v: money(cmp.savings), k: cmp.winner + ' saves' }
+    ];
+    $('stats').innerHTML = stats.map(function (x) {
+      return '<div class="stat"><div class="v">' + x.v + '</div><div class="k">' + x.k + '</div></div>';
+    }).join('');
+
+    $('advice').innerHTML = GravelMath.advice(cmp, use);
+    $('result').hidden = false;
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  $('run').onclick = run;
+})();
+</script>
+</body>
+</html>
